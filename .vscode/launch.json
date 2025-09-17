@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/hhr/2-autumn/dsa/homework/HW1/1-1-1fileName/version3",
-      "program": "/home/hhr/2-autumn/dsa/homework/HW1/1-1-1fileName/version3/build/Debug/outDebug",
+      "cwd": "/home/hhr/2-autumn/dsa/test",
+      "program": "/home/hhr/2-autumn/dsa/test/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

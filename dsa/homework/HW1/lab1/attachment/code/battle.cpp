@@ -1,22 +1,32 @@
-#include <cstdio>
 #include <cstdlib>
-int main(){
-    system("g++ rand_input.cpp -o rand_input");
-    system("g++ check_input.cpp -o check_input");
-    system("g++ solution_1.cpp -o solution_1");
-    system("g++ solution_2.cpp -o solution_2");
-    while(1){
+#include <cstdio>
+int main() {
+    //编译
+    system("g++ -std=c++11 -o check_input check_input.cpp");
+    system("g++ -std=c++11 -o rand_input rand_input.cpp");
+    system("g++ -std=c++11 -o solution1 solution1.cpp");
+    system("g++ -std=c++11 -o solution2 solution2.cpp");
+    //开始测试
+    while(1) {
+        //输出测试数据
         system("./rand_input > rand.in");
-        if(system("./check_input < rand.in")!=0){
-            printf("invalid input!\n");
+        //检查测试数据
+        if(system("./check_input < rand.in") != 0) {
+            printf("测试数据错误\n");
             break;
         }
-        system("./solution_1 < rand.in > 1.out");
-        system("./solution_2 < rand.in > 2.out");
-        if(system("diff 1.out 2.out")!=0){
-            printf("different output!\n");
+        //运行程序
+        system("./solution1 < rand.in > s1.out");
+        system("./solution2 < rand.in > s2.out");
+        //比较
+        if(system("diff s1.out s2.out") != 0) {
+            printf("测试数据：\n\n");
+            system("cat rand.in");
+            printf("\ns1.out：\n\n");
+            system("cat s1.out");
+            printf("\ns2.out：\n\n");
+            system("cat s2.out");
             break;
         }
     }
-    return 0;
 }
