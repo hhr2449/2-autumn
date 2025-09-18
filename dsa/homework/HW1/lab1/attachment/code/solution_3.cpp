@@ -8,45 +8,28 @@
 
 //注意看数据范围，使用long long
 //long long使用%lld 输出
-ll prefixsum[2000][2000];
+ll prefixsum[2001][2001];
 int main() {
     ll n, m, p;
     scanf("%lld %lld", &n, &m);
     //!应该将下标从1算起，这样可以规避掉边界情况处理（常见边界处理技巧）
-    for(int i = 0; i < n; i++) {
-        for(int j = 0; j < m; j++) {
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= m; j++) {
             ll x;
             scanf("%lld", &x);
-            prefixsum[i][j] = 0;
-            if(i != 0) {
-                prefixsum[i][j] += prefixsum[i - 1][j];
-            }
-            if(j != 0) {
-                prefixsum[i][j] += prefixsum[i][j - 1];
-            }
-            if(i != 0 && j != 0) {
-                prefixsum[i][j] -= prefixsum[i - 1][j - 1];
-            }
-            prefixsum[i][j] += x;
+            prefixsum[i][j] = x + prefixsum[i-1][j] + prefixsum[i][j-1] - prefixsum[i-1][j-1];
         }
     }
     scanf("%lld", &p);
     for(int i = 0; i < p; i++) {
         int x, y, a, b;
-        ll sum;
         scanf("%d %d %d %d", &x, &y, &a, &b);
-        x--;
-        y--;
-        sum = prefixsum[x + a - 1][y + b - 1];
-        if(x != 0) {
-            sum -= prefixsum[x - 1][y + b - 1];
-        }
-        if(y != 0) {
-            sum -= prefixsum[x + a - 1][y - 1];
-        }
-        if(x != 0 && y != 0) {
-            sum += prefixsum[x - 1][y - 1];
-        }
+        int end_x = x + a - 1;
+        int end_y = y + b - 1;
+        ll sum = prefixsum[end_x][end_y] 
+               - prefixsum[x-1][end_y] 
+               - prefixsum[end_x][y-1] 
+               + prefixsum[x-1][y-1];
         printf("%lld\n", sum);
     }
 }

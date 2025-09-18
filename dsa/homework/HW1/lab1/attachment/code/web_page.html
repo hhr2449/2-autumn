@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维前缀和算法可视化 (solution_3.cpp)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 矩阵单元格样式 */
+        .matrix-cell {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+        /* 前缀和矩阵高亮（计算中） */
+        .prefix-highlight {
+            background-color: #93c5fd;
+            font-weight: bold;
+        }
+        /* 查询子矩阵高亮 */
+        .query-highlight {
+            background-color: #fbbf24;
+        }
+        /* 步骤指示器样式 */
+        .step-active {
+            background-color: #2563eb;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-5">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">二维前缀和算法可视化 (solution_3.cpp)</h1>
+        
+        <!-- 控制区：参数配置与操作按钮 -->
+        <div class="bg-white rounded-lg shadow-md p-5 mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">1. 配置参数</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">矩阵行数 n</label>
+                    <input type="number" id="n" value="4" min="2" max="10" class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">矩阵列数 m</label>
+                    <input type="number" id="m" value="4" min="2" max="10" class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">查询次数 q</label>
+                    <input type="number" id="q" value="2" min="1" max="5" class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div class="flex items-end">
+                    <button id="generate-btn" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">生成矩阵</button>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">2. 算法步骤控制</h2>
+            <div class="flex flex-wrap gap-3 mb-4">
+                <button id="preprocess-btn" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition" disabled>1. 计算二维前缀和</button>
+                <button id="next-query-btn" class="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 transition" disabled>2. 执行下一次查询</button>
+                <button id="reset-btn" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition">重置</button>
+            </div>
+
+            <!-- 查询参数配置（动态显示） -->
+            <div id="query-config" class="hidden bg-gray-50 p-4 rounded mb-4">
+                <h3 class="text-lg font-medium text-gray-700 mb-2">当前查询参数（1-based）</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">起始行 x</label>
+                        <input type="number" id="query-x" min="1" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">起始列 y</label>
+                        <input type="number" id="query-y" min="1" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">子矩阵高度 a</label>
+                        <input type="number" id="query-a" min="1" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">子矩阵宽度 b</label>
+                        <input type="number" id="query-b" min="1" class="w-full p-2 border border-gray-300 rounded">
+                    </div>
+                </div>
+                <button id="exec-query-btn" class="mt-3 bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 transition">执行查询</button>
+            </div>
+        </div>
+
+        <!-- 可视化区：原始矩阵与前缀和矩阵 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- 原始矩阵 -->
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">原始矩阵（v(i,j)）</h2>
+                <div id="original-matrix" class="flex flex-col items-center gap-1"></div>
+            </div>
+            <!-- 前缀和矩阵 -->
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">二维前缀和矩阵（prefixsum[i][j]）</h2>
+                <div class="text-sm text-gray-500 mb-2">公式：prefixsum[i][j] = v[i][j] + prefixsum[i-1][j] + prefixsum[i][j-1] - prefixsum[i-1][j-1]</div>
+                <div id="prefix-matrix" class="flex flex-col items-center gap-1"></div>
+            </div>
+        </div>
+
+        <!-- 结果区：查询记录与算法说明 -->
+        <div class="bg-white rounded-lg shadow-md p-5">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">3. 查询结果记录</h2>
+            <div id="query-results" class="space-y-3 mb-6"></div>
+            
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">4. 算法说明（对应 solution_3.cpp）</h2>
+            <div class="text-gray-700 space-y-2">
+                <p><span class="font-bold">预处理阶段</span>：时间复杂度 O(n×m)，构建二维前缀和矩阵，将子矩阵求和的计算成本转移到初始化阶段。</p>
+                <p><span class="font-bold">查询阶段</span>：时间复杂度 O(1)，通过前缀和公式计算子矩阵和：</p>
+                <p class="pl-5">sum = prefixsum[end_x][end_y] - prefixsum[x-1][end_y] - prefixsum[end_x][y-1] + prefixsum[x-1][y-1]</p>
+                <p>其中，end_x = x + a - 1（子矩阵右下角行），end_y = y + b - 1（子矩阵右下角列）。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量：存储矩阵数据、查询状态
+        let originalMatrix = [];    // 原始矩阵
+        let prefixMatrix = [];      // 前缀和矩阵
+        let currentQuery = 0;       // 当前执行的查询序号（从1开始）
+        let totalQueries = 0;       // 总查询次数
+
+        // DOM 元素获取
+        const nInput = document.getElementById('n');
+        const mInput = document.getElementById('m');
+        const qInput = document.getElementById('q');
+        const generateBtn = document.getElementById('generate-btn');
+        const preprocessBtn = document.getElementById('preprocess-btn');
+        const nextQueryBtn = document.getElementById('next-query-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const queryConfig = document.getElementById('query-config');
+        const queryX = document.getElementById('query-x');
+        const queryY = document.getElementById('query-y');
+        const queryA = document.getElementById('query-a');
+        const queryB = document.getElementById('query-b');
+        const execQueryBtn = document.getElementById('exec-query-btn');
+        const originalMatrixEl = document.getElementById('original-matrix');
+        const prefixMatrixEl = document.getElementById('prefix-matrix');
+        const queryResultsEl = document.getElementById('query-results');
+
+        // 1. 生成随机原始矩阵
+        generateBtn.addEventListener('click', () => {
+            const n = parseInt(nInput.value);
+            const m = parseInt(mInput.value);
+            totalQueries = parseInt(qInput.value);
+            
+            // 重置状态
+            originalMatrix = [];
+            prefixMatrix = [];
+            currentQuery = 0;
+            originalMatrixEl.innerHTML = '';
+            prefixMatrixEl.innerHTML = '';
+            queryResultsEl.innerHTML = '';
+            queryConfig.classList.add('hidden');
+            
+            // 生成随机矩阵（值范围 0~20，便于可视化）
+            for (let i = 1; i <= n; i++) {
+                const row = [];
+                for (let j = 1; j <= m; j++) {
+                    row.push(Math.floor(Math.random() * 21)); // 0~20
+                }
+                originalMatrix.push(row);
+            }
+
+            // 渲染原始矩阵（1-based 显示）
+            for (let i = 0; i < originalMatrix.length; i++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'flex gap-1';
+                for (let j = 0; j < originalMatrix[i].length; j++) {
+                    const cellEl = document.createElement('div');
+                    cellEl.className = 'matrix-cell flex items-center justify-center';
+                    cellEl.textContent = originalMatrix[i][j];
+                    cellEl.id = `orig-${i+1}-${j+1}`; // 1-based 编号
+                    rowEl.appendChild(cellEl);
+                }
+                originalMatrixEl.appendChild(rowEl);
+            }
+
+            // 启用预处理按钮
+            preprocessBtn.disabled = false;
+            nextQueryBtn.disabled = true;
+        });
+
+        // 2. 计算并渲染二维前缀和矩阵（带步骤高亮）
+        preprocessBtn.addEventListener('click', async () => {
+            const n = originalMatrix.length;
+            const m = originalMatrix[0].length;
+            
+            // 初始化前缀和矩阵（0行0列为0，便于计算）
+            prefixMatrix = Array(n + 1).fill(0).map(() => Array(m + 1).fill(0));
+            
+            // 清空前缀和矩阵容器
+            prefixMatrixEl.innerHTML = '';
+            
+            // 渲染 0 行（辅助行，灰色显示）
+            const zeroRow = document.createElement('div');
+            zeroRow.className = 'flex gap-1';
+            zeroRow.appendChild(document.createElement('div')); // 空单元格（对应0行0列）
+            for (let j = 1; j <= m; j++) {
+                const cellEl = document.createElement('div');
+                cellEl.className = 'matrix-cell flex items-center justify-center text-gray-400';
+                cellEl.textContent = '0';
+                zeroRow.appendChild(cellEl);
+            }
+            prefixMatrixEl.appendChild(zeroRow);
+            
+            // 逐行逐列计算前缀和（1-based），并高亮显示计算过程
+            for (let i = 1; i <= n; i++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'flex gap-1';
+                
+                // 渲染 0 列（辅助列，灰色显示）
+                const zeroCell = document.createElement('div');
+                zeroCell.className = 'matrix-cell flex items-center justify-center text-gray-400';
+                zeroCell.textContent = '0';
+                rowEl.appendChild(zeroCell);
+                
+                // 渲染当前行的前缀和单元格
+                for (let j = 1; j <= m; j++) {
+                    const cellEl = document.createElement('div');
+                    cellEl.className = 'matrix-cell flex items-center justify-center';
+                    cellEl.id = `prefix-${i}-${j}`;
+                    rowEl.appendChild(cellEl);
+                }
+                prefixMatrixEl.appendChild(rowEl);
+                
+                // 逐列计算并更新（添加延迟，便于观察）
+                for (let j = 1; j <= m; j++) {
+                    const v = originalMatrix[i-1][j-1]; // 原始矩阵是0-based数组
+                    const up = prefixMatrix[i-1][j];
+                    const left = prefixMatrix[i][j-1];
+                    const upLeft = prefixMatrix[i-1][j-1];
+                    prefixMatrix[i][j] = v + up + left - upLeft;
+                    
+                    // 高亮当前计算的单元格
+                    const currentCell = document.getElementById(`prefix-${i}-${j}`);
+                    currentCell.classList.add('prefix-highlight');
+                    await delay(500); // 延迟500ms，观察计算步骤
+                    
+                    // 更新单元格值，并移除高亮
+                    currentCell.textContent = prefixMatrix[i][j];
+                    currentCell.classList.remove('prefix-highlight');
+                }
+            }
+
+            // 预处理完成，启用查询按钮
+            preprocessBtn.disabled = true;
+            nextQueryBtn.disabled = false;
+        });
+
+        // 3. 执行下一次查询（显示配置面板）
+        nextQueryBtn.addEventListener('click', () => {
+            currentQuery++;
+            if (currentQuery > totalQueries) {
+                alert('已完成所有查询！');
+                nextQueryBtn.disabled = true;
+                return;
+            }
+            
+            // 显示查询配置面板，并设置参数范围（防止越界）
+            queryConfig.classList.remove('hidden');
+            const n = originalMatrix.length;
+            const m = originalMatrix[0].length;
+            queryX.max = n;
+            queryY.max = m;
+            queryX.value = 1; // 默认起始行1
+            queryY.value = 1; // 默认起始列1
+            queryA.max = n - queryX.value + 1;
+            queryB.max = m - queryY.value + 1;
+            queryA.value = 2; // 默认高度2
+            queryB.value = 2; // 默认宽度2
+
+            // 监听起始坐标变化，更新子矩阵大小的最大值
+            queryX.addEventListener('input', updateQueryMax);
+            queryY.addEventListener('input', updateQueryMax);
+        });
+
+        // 更新查询参数的最大值（防止子矩阵越界）
+        function updateQueryMax() {
+            const n = originalMatrix.length;
+            const m = originalMatrix[0].length;
+            const x = parseInt(queryX.value);
+            const y = parseInt(queryY.value);
+            queryA.max = n - x + 1;
+            queryB.max = m - y + 1;
+        }
+
+        // 4. 执行查询（计算子矩阵和，并高亮显示）
+        execQueryBtn.addEventListener('click', () => {
+            const x = parseInt(queryX.value);
+            const y = parseInt(queryY.value);
+            const a = parseInt(queryA.value);
+            const b = parseInt(queryB.value);
+            const endX = x + a - 1;
+            const endY = y + b - 1;
+            const n = originalMatrix.length;
+            const m = originalMatrix[0].length;
+
+            // 校验参数合法性
+            if (endX > n || endY > m) {
+                alert('查询参数越界！子矩阵超出原始矩阵范围');
+                return;
+            }
+
+            // 计算子矩阵和（O(1) 公式）
+            const sum = prefixMatrix[endX][endY] 
+                      - prefixMatrix[x-1][endY] 
+                      - prefixMatrix[endX][y-1] 
+                      + prefixMatrix[x-1][y-1];
+
+            // 高亮原始矩阵中的查询子矩阵
+            for (let i = x; i <= endX; i++) {
+                for (let j = y; j <= endY; j++) {
+                    const cell = document.getElementById(`orig-${i}-${j}`);
+                    cell.classList.add('query-highlight');
+                }
+            }
+
+            // 高亮前缀和矩阵中的关键位置（公式用到的4个点）
+            const highlightPoints = [
+                [endX, endY],
+                [x-1, endY],
+                [endX, y-1],
+                [x-1, y-1]
+            ];
+            highlightPoints.forEach(([i, j]) => {
+                if (i >= 0 && j >= 0) { // 0行0列也需要高亮
+                    const cell = document.getElementById(`prefix-${i}-${j}`) || Array.from(prefixMatrixEl.children[i].children)[j+1];
+                    if (cell) cell.classList.add('query-highlight');
+                }
+            });
+
+            // 添加查询结果到记录
+            const resultItem = document.createElement('div');
+            resultItem.className = 'p-3 border border-gray-200 rounded';
+            resultItem.innerHTML = `
+                <div class="font-medium">查询 ${currentQuery}/${totalQueries}</div>
+                <div>参数：起始坐标 (${x}, ${y})，子矩阵大小 (${a}, ${b})，右下角坐标 (${endX}, ${endY})</div>
+                <div>子矩阵和：${sum}</div>
+                <div class="text-sm text-gray-500">计算过程：prefixsum[${endX}][${endY}] - prefixsum[${x-1}][${endY}] - prefixsum[${endX}][${y-1}] + prefixsum[${x-1}][${y-1}] = ${prefixMatrix[endX][endY]} - ${prefixMatrix[x-1][endY]} - ${prefixMatrix[endX][y-1]} + ${prefixMatrix[x-1][y-1]} = ${sum}</div>
+            `;
+            queryResultsEl.appendChild(resultItem);
+
+            // 隐藏查询配置面板，更新按钮状态
+            queryConfig.classList.add('hidden');
+            if (currentQuery >= totalQueries) {
+                nextQueryBtn.disabled = true;
+            }
+        });
+
+        // 5. 重置所有状态
+        resetBtn.addEventListener('click', () => {
+            location.reload(); // 简单重置：刷新页面
+        });
+
+        // 工具函数：延迟函数（用于步骤可视化）
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
