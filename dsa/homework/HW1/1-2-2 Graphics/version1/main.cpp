@@ -98,15 +98,15 @@ class Graphics {
             //这里1代表经过的线段，0代表没有经过的线段，现在要做的事情就是找到1和0的交汇点
             //那么left和right分别位于两端，进行二分查找，当mid指向0是就将right移动到mid，当mid指向1时将left移动到mid
             //这样left和right的距离一定是单调递减并且最后一定会到达1，此时left和right分别位于1和0的交汇点
-            while (right - left > 1) {
+            while (left < right) {
                 int mid = left + (right - left) / 2;
                 if (toleft(pointX[mid], 0, 0, pointY[mid], x, y)) {
                     right = mid;
                 } else {
-                    left = mid;
+                    left = mid + 1;
                 }
             }
-            return left + 1;
+            return left;
         }
         //析构函数
         ~Graphics() {
