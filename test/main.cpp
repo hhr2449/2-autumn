@@ -1,16 +1,21 @@
-#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 using namespace std;
+int add(int a, int b) {
+    a = 5;
+    b = 10;
+    int c = a + b;
+    a = c + 888;
+    return a + b;
 
-int push_back(int x[]) {
-    if(x == nullptr) {
-        return 0;
-    }
-    int size_x = sizeof(x);
-    return size_x;
 }
-
 int main() {
-    int x[] = {1, 2, 3, 4, 5};
-    cout << push_back(x);
-}
+    int E[10];
+    int a = 5;
+    int b = 10;
+    int c = a + b;
+    c = add(a, b);
 
+}
