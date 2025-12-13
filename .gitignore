@@ -1,0 +1,34 @@
+# ===== Build outputs (CMake / Make / Ninja) =====
+build/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# ===== Binaries / objects =====
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# ===== Debug / misc =====
+*.log
+*.tmp
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.code-workspace
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
