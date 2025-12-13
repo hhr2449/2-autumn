@@ -1,8 +1,8 @@
-	.file	"main.c"
+	.file	"main1.c"
 	.text
-	.globl	h
-	.type	h, @function
-h:
+	.globl	main
+	.type	main, @function
+main:
 .LFB0:
 	.cfi_startproc
 	endbr64
@@ -11,16 +11,13 @@ h:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movq	hook1(%rip), %rdx
 	movl	$0, %eax
-	call	*%rdx
-	nop
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
 .LFE0:
-	.size	h, .-h
+	.size	main, .-main
 	.ident	"GCC: (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0"
 	.section	.note.GNU-stack,"",@progbits
 	.section	.note.gnu.property,"a"

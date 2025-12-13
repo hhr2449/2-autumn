@@ -1,6 +1,4 @@
-void helper() { }  // 非 static，全局可见
-
-int main() {
-    helper();
-    helper2();
+extern void(*hook1)();
+void h(void (*callback)()) {
+    hook1();
 }

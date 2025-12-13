@@ -16,6 +16,7 @@ int main() {
     scanf("%d", &a[i]);
 
     // create a coroutine for each number
+    // 每个协程执行sleep函数，等待x毫秒之后打印x
     coroutines.new_coroutine(
         [](int x) {
           sleep(x);

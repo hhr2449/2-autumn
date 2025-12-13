@@ -18,7 +18,14 @@ void lookup_coroutine(const uint32_t *table, size_t size, uint32_t value,
 
     // TODO: Task 3
     // 使用 __builtin_prefetch 预取容易产生缓存缺失的内存
-    // 并调用 yield
+    // 并调用 yield 
+
+    //! __builtin_prefetch：GCC 提供的一个内置函数，用于在数据被实际访问之前，将其提前加载到 CPU 缓存中，从而减少内存访问延迟并提高程序性能。
+    //! 参数为地址
+    // 这里调用预取后就不继续执行了，而是退出该协程，先执行其他的协程
+    // 等其他的协程执行完后，再回来执行这里
+    __builtin_prefetch(&table[probe]);
+    yield();
 
     uint32_t v = table[probe];
     if (v <= value) {
@@ -44,6 +51,7 @@ void lookup(const uint32_t *table, size_t size, uint32_t value,
   *result = low;
 }
 
+// 执行普通的二分查找
 uint32_t *naive(int m, int n, int batch, size_t log2_bytes, uint32_t *data) {
   std::uniform_int_distribution<uint32_t> distr;
   std::minstd_rand eng(0);
@@ -70,6 +78,7 @@ uint32_t *naive(int m, int n, int batch, size_t log2_bytes, uint32_t *data) {
   return res;
 }
 
+// 执行批量的协程二分查找
 uint32_t *coroutine_batched(int m, int n, int batch, size_t log2_bytes,
                        uint32_t *data) {
   std::uniform_int_distribution<uint32_t> distr;
@@ -111,6 +120,10 @@ int main(int argc, char *argv[]) {
   int batch = 16;
 
   int opt;
+  // 命令行参数
+  // -l控制数据大小（单位：2的幂）
+  // -m控制循环次数
+  // -b控制批量大小
   while ((opt = getopt(argc, argv, "l:m:b:")) != -1) {
     switch (opt) {
     case 'l':
